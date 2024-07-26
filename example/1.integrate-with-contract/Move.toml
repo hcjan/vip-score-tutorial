@@ -3,8 +3,8 @@ name = "example"
 version = "0.0.0"
 
 [dependencies]
-MinitiaStdlib = { git = "https://github.com/initia-labs/movevm.git", subdir = "precompile/modules/minitia_stdlib", rev = "14487bf" }
+MinitiaStdlib = { git = "https://github.com/initia-labs/move-natives", subdir = "minitia_stdlib", rev = "main" }
 
 [addresses]
 minitiad_std =  "0x1"
-deployer = "0x2"
+deployer = "0x2EA00630FA4CDE57967BC2F9BE4846E57126BB6E"

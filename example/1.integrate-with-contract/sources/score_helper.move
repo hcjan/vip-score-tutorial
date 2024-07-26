@@ -3,7 +3,7 @@
 module deployer::score_helper {
     use std::error;
     use std::signer;
-
+    use std::vector;
     use minitia_std::object::{Self, ExtendRef};
     use minitia_std::vip_score;
 
@@ -59,6 +59,31 @@ module deployer::score_helper {
         let deployer = &object::generate_signer_for_extending(&score_store.extend_ref);
         vip_score::increase_score(deployer, addr, score_store.stage, score);
     }
+
+     // interface to increase user score
+    public entry fun test_increase_score(deployer: &signer, stage: u64, addr: address, score: u64) {
+         assert!(signer::address_of(deployer) == @deployer,
+            error::permission_denied(EUNAUTHORIZED));
+        vip_score::increase_score(deployer, addr, stage, score);
+    }
+
+      // interface to increase user score
+    public entry fun increase_score_external(deployer: &signer, stage: u64, addrs: vector<address>, increase_scores: vector<u64>) {
+         assert!(signer::address_of(deployer) == @deployer,
+            error::permission_denied(EUNAUTHORIZED));
+             vector::enumerate_ref(
+            &addrs,
+            |i, addr| {
+                 vip_score::increase_score(
+                    deployer,
+                    *addr,
+                    stage,
+                    *vector::borrow(&increase_scores, i),
+                );
+            }
+        );
+    }
+
 
     // interface to decrease user score. note that score cannot be decreased to < 0
     public(friend) fun decrease_score(addr: address, score: u64) acquires ScoreStore {
