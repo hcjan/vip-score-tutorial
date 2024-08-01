@@ -19,6 +19,11 @@ module deployer::score_helper {
         stage: u64
     }
 
+    struct SystemState has key {
+        stage: u64
+    }
+
+    
     public entry fun register_vip_score(deployer: &signer) {
         assert!(!exists<ScoreStore>(@deployer), error::invalid_argument(EALREADY_REGISTERED)); 
         let constructor_ref = object::create_named_object(deployer, b"seed", false);
@@ -37,13 +42,16 @@ module deployer::score_helper {
         score_store.stage = stage;
     }
 
-    public entry fun finalize_stage_script(deployer: &signer, stage: u64) acquires ScoreStore {
+    public entry fun finalize_stage_script(deployer: &signer, stage: u64) acquires SystemState {
         assert!(signer::address_of(deployer) == @deployer,
             error::permission_denied(EUNAUTHORIZED));
-        
-        let score_store = borrow_global_mut<ScoreStore>(@deployer);
-        let deployer = &object::generate_signer_for_extending(&score_store.extend_ref);
+        if(!exists<SystemState>(@deployer)) {
+            move_to(deployer, SystemState { stage: 0 });
+        };
+
         vip_score::finalize_script(deployer, stage);
+        let system_state = borrow_global_mut<SystemState>(@deployer);
+        system_state.stage = stage;
     }
 
     // interface to update user score to specific value
@@ -98,5 +106,12 @@ module deployer::score_helper {
     public fun get_deployer_object_address(): address acquires ScoreStore {
         let score_store = borrow_global<ScoreStore>(@deployer);
         object::address_from_extend_ref(&score_store.extend_ref)
+    }
+
+
+    #[view]
+    public fun get_last_updated_stage(): u64 acquires SystemState {
+        let system_state = borrow_global<SystemState>(@deployer);
+        system_state.stage
     }
 }
